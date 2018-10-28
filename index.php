@@ -8,30 +8,35 @@ $FileWriteError = -2;
 $HTML_DefaultTextStyle = "<p style='position: center; margin: auto; width: 350px; margin-top: 2%; font-family: \"Source Sans Pro\",Helvetica,sans-serif;'>";
 
 error_reporting(0);
-if (file_exists("file") == false)
+if (file_exists("file") == false) {
 	mkdir("file");
+	fwrite(fopen("file/.htaccess", "w"), "RemoveHandler .php .phtml .php3\nRemoveType .php .phtml .php3\nphp_flag engine off");
+}
 
-function uploadFile ($name) {
-	if (filesize($name) > $GLOBALS['MaxFilesize']) {
-		echo "wut";
+function uploadFile ($tempname, $filename) {
+	if (filesize($tempname) > $GLOBALS['MaxFilesize']) {
 		return -1;
 	}
 	
-	$hash = md5_file($name);
-	$target_file = "file/" . $hash;
+	$filename = preg_replace("/[^a-zA-Z0-9._]+/m", "-", $filename);
+	$hash = substr(md5_file($tempname), 0, 6);
+	if (file_exists("file/" . $hash) == false)
+		mkdir ("file/" . $hash);
+	
+	$target_file = "file/" . $hash . '/' . $filename;
 	$upfile = fopen($target_file, "w");
 	
-	if (fwrite($upfile, file_get_contents($name)) != false) {
-		$txt = $hash . " " . (time() + $GLOBALS['Lifetime']);
-		file_put_contents('KillLog.txt', $txt.PHP_EOL , FILE_APPEND | LOCK_EX);
-		fclose($upfile);
+	if (fwrite($upfile, file_get_contents($tempname)) != false) {
+		//$txt = $hash . " " . (time() + $GLOBALS['Lifetime']);
+		//file_put_contents('KillLog.txt', $txt.PHP_EOL , FILE_APPEND | LOCK_EX);
+		//fclose($upfile);
 		return $target_file;
-	} else 
+	} else
 		return -2;
 }
 
 //PUT Handling
-if($_SERVER['REQUEST_METHOD'] == 'PUT') {
+/*if($_SERVER['REQUEST_METHOD'] == 'PUT') {
 	$responsecode = uploadFile("php://input");
 	
 	if ($responsecode == $FileSizeError) {
@@ -41,7 +46,7 @@ if($_SERVER['REQUEST_METHOD'] == 'PUT') {
 	} else {
 		echo "File Uploaded: upfiles.ga/" . $responsecode . "\n";
 	}
-}
+}*/
 ?>
 
 <!DOCTYPE html>
@@ -65,7 +70,7 @@ if($_SERVER['REQUEST_METHOD'] == 'PUT') {
 
 <?php
 if ($_FILES["file"] != null) {
-	$responsecode = uploadFile($_FILES["file"]["tmp_name"]);
+	$responsecode = uploadFile($_FILES["file"]["tmp_name"], $_FILES["file"]["name"]);
 	
 	if ($responsecode == $GLOBALS['FileSizeError']) {
 		echo $HTML_DefaultTextStyle . "Please upload files smaller than: " . $MaxFileSize . " Bytes.</p>";
