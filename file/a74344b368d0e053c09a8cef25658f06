@@ -1,0 +1,7 @@
+# depslib dependency file v1.0
+1517870193 source:d:\work\memory test\main.cpp
+	<iostream>
+	<algorithm>
+	<map>
+	<unordered_map>
+
