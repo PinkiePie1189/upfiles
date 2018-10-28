@@ -1,5 +1,8 @@
 <?php
 error_reporting(0);
+if (file_exists("file") == false)
+	mkdir("file");
+
 $target_file = "file/" . md5_file($_FILES["file"]["tmp_name"]);
 
 if ($_SERVER['CONTENT_LENGTH'] > 64000000)
