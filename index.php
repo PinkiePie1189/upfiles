@@ -1,24 +1,46 @@
 <?php
+$Lifetime = 6 * 3600;
+$MaxFilesize = 64000000;
+
+$FileSizeError = -1;
+$FileWriteError = -2;
+
+$HTML_DefaultTextStyle = "<p style='position: center; margin: auto; width: 350px; margin-top: 2%; font-family: \"Source Sans Pro\",Helvetica,sans-serif;'>";
+
 error_reporting(0);
 if (file_exists("file") == false)
 	mkdir("file");
-	
-//PUT Handling
-if($_SERVER['REQUEST_METHOD'] == 'PUT') {
-	$target_file = "file/" . md5_file("php://input");
-	$upfile = fopen($target_file, "w");
-	
-	if (filesize("php://input") > 64000000) {
-		die("Please don't upload files larger than 64MB.");
+
+function uploadFile ($name) {
+	if (filesize($name) > $GLOBALS['MaxFilesize']) {
+		echo "wut";
+		return -1;
 	}
 	
-	if (fwrite($upfile, file_get_contents('php://input')) != false)
-		echo "File uploaded: " . "upfiles.ga/" . $target_file;
-	else 
-		echo "Could not upload file.";
+	$hash = md5_file($name);
+	$target_file = "file/" . $hash;
+	$upfile = fopen($target_file, "w");
 	
-	fclose($upfile);
-	die();
+	if (fwrite($upfile, file_get_contents($name)) != false) {
+		$txt = $hash . " " . (time() + $GLOBALS['Lifetime']);
+		file_put_contents('KillLog.txt', $txt.PHP_EOL , FILE_APPEND | LOCK_EX);
+		fclose($upfile);
+		return $target_file;
+	} else 
+		return -2;
+}
+
+//PUT Handling
+if($_SERVER['REQUEST_METHOD'] == 'PUT') {
+	$responsecode = uploadFile("php://input");
+	
+	if ($responsecode == $FileSizeError) {
+		echo "Please upload files smaller than: " . $MaxFileSize . " Bytes.\n";
+	} else if ($responsecode == $FileWriteError) {
+		echo "File was not uploaded.\n";
+	} else {
+		echo "File Uploaded: upfiles.ga/" . $responsecode . "\n";
+	}
 }
 ?>
 
@@ -43,18 +65,15 @@ if($_SERVER['REQUEST_METHOD'] == 'PUT') {
 
 <?php
 if ($_FILES["file"] != null) {
-	$target_file = "file/" . md5_file($_FILES["file"]["tmp_name"]);
-
-	if ($_SERVER['CONTENT_LENGTH'] > 64000000) {
-		echo "<p style='position: center; margin: auto; width: 350px; margin-top: 2%; font-family: \"Source Sans Pro\",Helvetica,sans-serif;'>Please don't upload files larger than 64MB.</p>";
-		die();
+	$responsecode = uploadFile($_FILES["file"]["tmp_name"]);
+	
+	if ($responsecode == $GLOBALS['FileSizeError']) {
+		echo $HTML_DefaultTextStyle . "Please upload files smaller than: " . $MaxFileSize . " Bytes.</p>";
+	} else if ($responsecode == $GLOBALS['FileWriteError']) {
+		echo $HTML_DefaultTextStyle . "File was not uploaded.</p>";
+	} else {
+		echo $HTML_DefaultTextStyle . "File Uploaded: <a href=\"" . $responsecode . "\">" . "upfiles.ga/" . $responsecode . "</a></p>";
 	}
-
-	if (move_uploaded_file($_FILES["file"]["tmp_name"], $target_file))
-		echo "<p style='position: center; margin: auto; width: 350px; margin-top: 2%; font-family: \"Source Sans Pro\",Helvetica,sans-serif;'>File uploaded: <a href=\"/" . $target_file . "\"> " . "upfiles.ga/" . $target_file . " </a></p>";
-	else
-		echo "<p style='position: center; margin: auto; width: 350px; margin-top: 2%; font-family: \"Source Sans Pro\",Helvetica,sans-serif;'>File wasn't uploaded. </p>";
-
 }
 ?>
 </html>
