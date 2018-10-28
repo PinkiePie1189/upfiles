@@ -1,4 +1,5 @@
-ErrorDocument 403 /errors/403.php
-ErrorDocument 404 /errors/404.php
+ErrorDocument 403 "<h1>Forbidden</h1>"
+ErrorDocument 404 "<h1>Not Found</h1>"
 
 RedirectMatch 403 /\.git
+RedirectMatch 404 README.md
