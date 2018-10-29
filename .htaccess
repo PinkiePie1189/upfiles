@@ -1,7 +1,11 @@
 ErrorDocument 403 "<h1>Forbidden</h1>"
 ErrorDocument 404 "<h1>Not Found</h1>"
 
-DirectoryIndex index.php
 Options -Indexes
+
+<FilesMatch ^>
+	Allow from all
+</FilesMatch>
+
 RedirectMatch 403 /\.git
 RedirectMatch 404 README.md
