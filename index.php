@@ -13,10 +13,34 @@ if (file_exists("file") == false) {
 	fwrite(fopen("file/.htaccess", "w"), "RemoveHandler .php .phtml .php3\nRemoveType .php .phtml .php3\nphp_flag engine off");
 }
 
+
+function shred() {
+	$dir = getcwd()."/file/";
+	$interval = strtotime('-2 days'); 
+	
+	foreach (glob($dir . "*") as $file) {
+		if (filemtime($file) <= $interval ) {
+			if (is_dir($file)) {
+				$subfiles = scandir($file);
+				foreach ($subfiles as $subfile) {
+					if ($subfile != "." && $subfile != "..") {
+						unlink($file . "/" . $subfile);
+					}
+				}
+				rmdir($file);
+			} else {
+				unlink($file);
+			}
+		}
+	}
+}
+
 function uploadFile ($tempname, $filename) {
 	if (filesize($tempname) > $GLOBALS['MaxFilesize']) {
 		return -1;
 	}
+	
+	shred();
 	
 	$filename = preg_replace("/[^a-zA-Z0-9._]+/m", "-", $filename);
 	$hash = substr(md5_file($tempname), 0, 6);
