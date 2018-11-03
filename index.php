@@ -1,6 +1,6 @@
 <?php
 $Lifetime = 6 * 3600;
-$MaxFilesize = 64000000;
+$MaxFilesize = 32000000000;
 
 $FileSizeError = -1;
 $FileWriteError = -2;
@@ -24,20 +24,26 @@ function uploadFile ($tempname, $filename) {
 		mkdir ("file/" . $hash);
 	
 	$target_file = "file/" . $hash . '/' . $filename;
-	$upfile = fopen($target_file, "w");
 	
-	if (fwrite($upfile, file_get_contents($tempname)) != false) {
+	if (copy($tempname, $target_file) != false) {
 		//$txt = $hash . " " . (time() + $GLOBALS['Lifetime']);
 		//file_put_contents('KillLog.txt', $txt.PHP_EOL , FILE_APPEND | LOCK_EX);
-		//fclose($upfile);
 		return $target_file;
 	} else
 		return -2;
 }
 
 //PUT Handling
-/*if($_SERVER['REQUEST_METHOD'] == 'PUT') {
-	$responsecode = uploadFile("php://input");
+if($_SERVER['REQUEST_METHOD'] == 'PUT') {
+	$fname = "temp";
+	
+	if ($_GET['f'] == null) {
+		echo "Please supply a filename parameter too. Using temp filename.\n";
+	} else {
+		$fname = $_GET['f'];
+	}
+	
+	$responsecode = uploadFile("php://input", $fname);
 	
 	if ($responsecode == $FileSizeError) {
 		echo "Please upload files smaller than: " . $MaxFileSize . " Bytes.\n";
@@ -46,7 +52,8 @@ function uploadFile ($tempname, $filename) {
 	} else {
 		echo "File Uploaded: upfiles.ga/" . $responsecode . "\n";
 	}
-}*/
+	die();
+}
 ?>
 
 <!DOCTYPE html>
@@ -62,6 +69,9 @@ function uploadFile ($tempname, $filename) {
 </div>
 
 <div style ="position: center; margin: auto; width: 350px; margin-top: 10%; background-color: #F6F8F8; outline: 5px solid #85B4B9; border: 5px solid #F6F8F8">
+<p style='position: center; margin: auto; width: 350px; font-family: \"Source Sans Pro\",Helvetica,sans-serif;'>
+Upload files up to 10MB.
+</p>
 <form action="index.php" method="post" enctype="multipart/form-data">
     <input type="file" name="file" id="file">
     <input type="submit" value="Upload File" name="submit">
