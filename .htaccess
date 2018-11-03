@@ -1,8 +1,12 @@
+php_value upload_max_filesize 32G
+php_value post_max_size 32G
+
 ErrorDocument 403 "<h1>Forbidden</h1>"
 ErrorDocument 404 "<h1>Not Found</h1>"
 
-Options -Indexes
+DirectoryIndex index.php
 
+Options -Indexes
 <FilesMatch ^>
 	Allow from all
 </FilesMatch>
