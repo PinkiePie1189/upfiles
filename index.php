@@ -38,7 +38,7 @@ if($_SERVER['REQUEST_METHOD'] == 'PUT') {
 	$fname = "temp";
 	
 	if ($_GET['f'] == null) {
-		echo "Please supply a filename parameter too. Using temp filename.\n";
+		echo "Please use 'http://upfiles.ga/index.php?f=<your_filename>' to supply a name for the uploaded file. Using filename 'temp'.";
 	} else {
 		$fname = $_GET['f'];
 	}
